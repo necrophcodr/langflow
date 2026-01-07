@@ -40,7 +40,7 @@ from langflow.services.database.models.folder.model import Folder
 from langflow.services.deps import get_service, get_settings_service, get_storage_service
 from langflow.services.publish.schema import PublishedFlowMetadata
 from langflow.services.publish.service import PublishService
-from langflow.services.publish.utils import MISSING_ITEM_MSG, require_all_ids, require_publish_key
+from langflow.services.publish.utils import MISSING_ITEM_MSG, require_all_ids
 from langflow.services.schema import ServiceType
 from langflow.services.storage.service import StorageService
 from langflow.utils.compression import compress_response
@@ -717,10 +717,7 @@ async def publish_flow(
 
         publish_service: PublishService = get_service(ServiceType.PUBLISH_SERVICE)
         publish_data: PublishedFlowMetadata = await publish_service.put_flow(
-            user_id=current_user.id,
-            flow_id=db_flow.id,
-            flow_blob=flow_blob,
-            publish_tag=publish_tag
+            user_id=current_user.id, flow_id=db_flow.id, flow_blob=flow_blob, publish_tag=publish_tag
         )
     except HTTPException as httperr:
         raise httperr from httperr
@@ -736,7 +733,7 @@ async def list_published_flows(
     *,
     flow_id: UUID,
     current_user: CurrentActiveUser,
-    ):
+):
     """List all published versions of the flow."""
     require_all_ids(current_user.id, flow_id, "flow")
     try:
@@ -744,7 +741,7 @@ async def list_published_flows(
         flow_data_list = await publish_service.list_flow_versions(
             user_id=current_user.id,
             flow_id=flow_id,
-            )
+        )
     except Exception as e:
         err_msg = str(e)
         raise HTTPException(status_code=500, detail=err_msg) from e
@@ -760,7 +757,7 @@ async def read_published_flow(
     version_id: str,
     timestamp: str,
     flow_name: str,
-    ):
+):
     """Retrieve a specific published flow version."""
     require_all_ids(current_user.id, flow_id, "flow")
     try:
@@ -770,7 +767,7 @@ async def read_published_flow(
             user_id=current_user.id,
             flow_id=flow_id,
             key=key,
-            )
+        )
     except Exception as e:
         err_msg = str(e)
         if "NoSuchKey" in err_msg:
@@ -788,7 +785,7 @@ async def delete_published_flow(
     version_id: str,
     timestamp: str,
     flow_name: str,
-    ):
+):
     """Delete a specific published flow version."""
     require_all_ids(current_user.id, flow_id, "flow")
 
@@ -799,7 +796,7 @@ async def delete_published_flow(
             user_id=current_user.id,
             flow_id=flow_id,
             key=key,
-            )
+        )
     except Exception as e:
         err_msg = str(e)
         if "NoSuchKey" in err_msg:
@@ -811,7 +808,7 @@ async def _read_flow_for_publish(
     session: AsyncSession,
     flow_id: UUID,
     user_id: UUID,
-    ) -> Flow | None:
+) -> Flow | None:
     """Read a flow from flow_id and user_id.
 
     Raises an HTTP exception if not found or Flow.data is None or empty.
